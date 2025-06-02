@@ -1,0 +1,9 @@
+.poster-container {
+  position: relative;
+}
+
+.loading-overlay {
+  position: absolute;
+  top:50px;
+  left:50px;
+}
