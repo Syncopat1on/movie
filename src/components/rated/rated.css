@@ -1,0 +1,20 @@
+.rated-container {
+  width: 1010px;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  background-color: #FFFFFF;
+}
+
+.no-rated-movies {
+  font-family: Inter;
+  width: 255px;
+  margin: 0 auto;
+  margin-top: 100px;
+}
+
+.rated-movies {
+  margin-top: 20px;
+  height: 1010px;
+}

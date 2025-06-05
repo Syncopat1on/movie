@@ -12,21 +12,9 @@
   position:relative;
 }
 
-.tabs-rectangle {
-  position: absolute;
-  bottom: 0;
-  left: 0px;
-  width: 65px;
-  height: 2px;
-  background-color:#1890FF;
-}
-
-.tabs-search {
-  color: #1890FF;
-}
-
-.tabs-rated {
-  /* color:#1890FF; */
+.tabs-rated.active,
+.tabs-search.active {
+  color: #1890FF; 
 }
 
 .tabs-search, .tabs-rated {
@@ -37,12 +25,21 @@
   display: flex;
   justify-content: center;
 }
+.tabs-rectangle.active {
+  position: absolute;
+  bottom: 0;
+  left: 0px;
+  width: 65px;
+  height: 2px;
+  background-color:#1890FF;
+}
 
-.tabs-rectangle--not-active {
+.tabs-rectangle.not-active {
   position: absolute;
   bottom:0;
   right: 0;
-  width: 81px;
-  height: 1px;
-  background-color: rgb(238, 238, 237);
+  width: 65px;
+  height: 2px;
+  background-color: #1890FF;
 }
+

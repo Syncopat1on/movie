@@ -1,16 +1,15 @@
 import React, { useEffect, useState, useCallback } from 'react';
-
 import './movie.css';
 import MoviePoster from '../moviePoster/moviePoster';
 import Errors from '../error/errors';
 import MovieNotFound from '../error/movieNotFound';
 import Description from '../description/description';
 import Search from '../search/search';
-import Tabs from '../tabs/tabs';
 import Loading from '../loading/loading';
 import PaginationB from '../pagination/pagination';
-
 import { debounce } from 'lodash';
+import Tabs from '../tabs/tabs';
+import { useRatedMovies } from '../../contexts/RatedContext';
 
 function Movie() {
   const [filteredMovies, setFilteredMovies] = useState([]);
@@ -19,6 +18,7 @@ function Movie() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const { ratedMovies } = useRatedMovies();
 
   const searchMovies = useCallback((query, page = 1) => {
     setIsLoading(true);
@@ -35,10 +35,16 @@ function Movie() {
       })
       .then(json => {
         if (!json.results) throw new Error('Invalid data format');
+        
+        // Объединяем с оцененными фильмами
+        const mergedResults = json.results.map(movie => {
+          const ratedMovie = ratedMovies.find(m => m.id === movie.id);
+          return ratedMovie ? { ...movie, userRating: ratedMovie.userRating } : movie;
+        });
 
-        const limitedResults = json.results.slice(0, 6);
+        const limitedResults = mergedResults.slice(0, 6);
         setFilteredMovies(limitedResults);
-        setTotalPages(Math.min(json.total_pages, 500))
+        setTotalPages(Math.min(json.total_pages, 500));
         setCurrentPage(page);
       })
       .catch(err => {
@@ -47,7 +53,7 @@ function Movie() {
         setFilteredMovies([]);
       })
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [ratedMovies]);
 
   const debouncedSearch = useCallback(
     debounce((query) => {
@@ -59,9 +65,6 @@ function Movie() {
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchQuery(query);
-
-    if (query.length > 0 && query.length < 1) return;
-
     debouncedSearch(query);
   };
 
@@ -78,11 +81,29 @@ function Movie() {
 
   useEffect(() => {
     searchMovies('');
-
     return () => {
       debouncedSearch.cancel();
     };
-  }, [searchMovies]);
+  }, [searchMovies, debouncedSearch]);
+
+  const renderMovieCards = () => {
+    return filteredMovies.map((movie) => (
+      <div className='movie-card' key={movie.id}>
+        <MoviePoster
+          posterPath={movie.poster_path}
+          title={movie.title}
+        />
+        <Description
+          movie={movie}
+          movieTitle={movie.title}
+          movieRealiaseDate={movie.release_date}
+          movieOverview={truncateText(movie.overview, 150)}
+          voteAverage={movie.vote_average ? movie.vote_average.toFixed(1) : "0.0"}
+          genreIds={movie.genre_ids}
+        />
+      </div>
+    ));
+  };
 
   if (isLoading && !filteredMovies.length) {
     return (
@@ -102,9 +123,9 @@ function Movie() {
       <div className='movie-container'>
         <Tabs />
         <div className='search-container'>
-          <Search 
-            searchQ={searchQuery} 
-            handleSC={handleSearchChange} 
+          <Search
+            searchQ={searchQuery}
+            handleSC={handleSearchChange}
             isSearching={isLoading}
           />
         </div>
@@ -117,41 +138,30 @@ function Movie() {
     <div className='movie-container'>
       <Tabs />
       <div className='search-container'>
-        <Search 
-          searchQ={searchQuery} 
-          handleSC={handleSearchChange} 
+        <Search
+          searchQ={searchQuery}
+          handleSC={handleSearchChange}
           isSearching={isLoading}
         />
       </div>
 
       {isLoading && (
-      <h2 className="loading">
-        Loading...
-        <Loading />
-      </h2>
-    )}
+        <h2 className="loading">
+          Loading...
+          <Loading />
+        </h2>
+      )}
 
       <div className='card-container'>
-        {filteredMovies.map((movie) => (
-          <div className='movie-card' key={movie.id}>
-            <MoviePoster 
-              posterPath={movie.poster_path} 
-              title={movie.title}
-            />
-            <Description 
-              movieTitle={movie.title} 
-              movieRealiaseDate={movie.release_date}
-              movieOverview={truncateText(movie.overview, 150)} 
-            />
-          </div>
-        ))}
+        {renderMovieCards()}
       </div>
-        <PaginationB 
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onChange={handlePageChange}
-          disabled={isLoading}
-        />
+
+      <PaginationB
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onChange={handlePageChange}
+        disabled={isLoading}
+      />
     </div>
   );
 }

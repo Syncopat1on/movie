@@ -23,7 +23,7 @@ const MoviePoster = ({ posterPath, title }) => {
       {imageError ? (
         <img
           src={fallbackImage}
-          alt='Image not found'
+          alt='Img'
           className='movieImg'
           onLoad={() => setIsImageLoaded(true)}
         />
