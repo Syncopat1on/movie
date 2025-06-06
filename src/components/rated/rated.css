@@ -4,17 +4,31 @@
   margin: 0 auto;
   display: flex;
   flex-wrap: wrap;
+  flex-direction: column;
   background-color: #FFFFFF;
 }
 
 .no-rated-movies {
   font-family: Inter;
   width: 255px;
+  padding-top: 40px;
   margin: 0 auto;
-  margin-top: 100px;
 }
 
 .rated-movies {
   margin-top: 20px;
-  height: 1010px;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+
+}
+
+@media screen and (width < 1010px) {
+  .rated-movies {
+    margin-top: 17px;
+  }
+  .rated-container {
+    width: 100%;
+  }
 }

@@ -7,3 +7,9 @@
   top:50px;
   left:50px;
 }
+
+.mobile-poster {
+  width: 60px;
+  height: 91px;
+  object-fit: cover;
+}

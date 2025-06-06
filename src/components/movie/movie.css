@@ -56,5 +56,23 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  
+}
+
+@media screen and (width < 1010px) {
+  .movie-container {
+    width: 100%;
+    flex-direction: column;
+  }
+  .card-container {
+    flex-direction: column;
+    width:451px;
+    row-gap: 20px;
+    column-gap: 0px;
+    padding: 0px;
+  }
+}
+@media screen and (width < 500px) {
+  .card-container {
+    width: 100%;
+  }
 }

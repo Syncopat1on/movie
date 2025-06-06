@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useContext, useRef} from 'react';
+
+import './mobile-movie-card.css';
 import './movie.css';
 import MoviePoster from '../moviePoster/moviePoster';
 import Errors from '../error/errors';
@@ -7,9 +9,10 @@ import Description from '../description/description';
 import Search from '../search/search';
 import Loading from '../loading/loading';
 import PaginationB from '../pagination/pagination';
-import { debounce } from 'lodash';
 import Tabs from '../tabs/tabs';
 import { useRatedMovies } from '../../contexts/RatedContext';
+import { Rate } from 'antd';
+import { GenreContext } from '../../contexts/GenreContext';
 
 function Movie() {
   const [filteredMovies, setFilteredMovies] = useState([]);
@@ -18,9 +21,57 @@ function Movie() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const { ratedMovies } = useRatedMovies();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  const { ratedMovies, addRatedMovie } = useRatedMovies();
+  const { genres } = useContext(GenreContext);
+
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setError(null);
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      setError('You are offline. Please check your internet connection.');
+    };
+    const handleResize = () => setWindowWidth(window.innerWidth);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  const getRatingColor = (voteAverage) => {
+    const num = parseFloat(voteAverage);
+    if (num >= 0 && num < 3) return '#E90000';
+    if (num >= 3 && num < 5) return '#E97E00';
+    if (num >= 5 && num < 7) return '#E9D100';
+    if (num >= 7) return '#66E900';
+    return '#000000';
+  };
+
+  const getGenreNames = (genreIds) => {
+    if (!genres || !genreIds) return [];
+    return genreIds.map(id => {
+      const genre = genres.find(g => g.id === id);
+      return genre ? genre.name : 'Unknown';
+    });
+  };
 
   const searchMovies = useCallback((query, page = 1) => {
+    if (!isOnline) {
+      setError('You are offline. Cannot search movies.');
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
 
@@ -35,15 +86,11 @@ function Movie() {
       })
       .then(json => {
         if (!json.results) throw new Error('Invalid data format');
-        
-        // Объединяем с оцененными фильмами
         const mergedResults = json.results.map(movie => {
           const ratedMovie = ratedMovies.find(m => m.id === movie.id);
           return ratedMovie ? { ...movie, userRating: ratedMovie.userRating } : movie;
         });
-
-        const limitedResults = mergedResults.slice(0, 6);
-        setFilteredMovies(limitedResults);
+        setFilteredMovies(mergedResults.slice(0, 6));
         setTotalPages(Math.min(json.total_pages, 500));
         setCurrentPage(page);
       })
@@ -53,22 +100,13 @@ function Movie() {
         setFilteredMovies([]);
       })
       .finally(() => setIsLoading(false));
-  }, [ratedMovies]);
-
-  const debouncedSearch = useCallback(
-    debounce((query) => {
-      searchMovies(query);
-    }, 500),
-    [searchMovies]
-  );
-
-  const handleSearchChange = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    debouncedSearch(query);
-  };
+  }, [isOnline, ratedMovies]);
 
   const handlePageChange = (page) => {
+    if (!isOnline) {
+      setError('Cannot change page while offline');
+      return;
+    }
     searchMovies(searchQuery, page);
   };
 
@@ -79,31 +117,109 @@ function Movie() {
     return truncated + ' ...';
   };
 
-  useEffect(() => {
-    searchMovies('');
-    return () => {
-      debouncedSearch.cancel();
-    };
-  }, [searchMovies, debouncedSearch]);
+  const searchTimeout = useRef(null);
+
+  const handleSearchChange = useCallback((e) => {
+  const query = e.target.value;
+  setSearchQuery(query);
+
+  if (searchTimeout.current) {
+    clearTimeout(searchTimeout.current);
+  }
+
+  searchTimeout.current = setTimeout(() => {
+    searchMovies(query);
+  }, 500);
+}, [searchMovies]);
+
+useEffect(() => {
+  searchMovies('');
+
+  return () => {
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+  };
+}, [searchMovies]);
+
+  const renderMobileCard = (movie) => {
+    const ratingColor = getRatingColor(movie.vote_average);
+    const genreNames = getGenreNames(movie.genre_ids);
+
+    return (
+      <div className='mobile-movie-card' key={movie.id}>
+        <div className='mobile-card-content'>
+          <div className='mobile-poster-wrapper'>
+            <MoviePoster 
+              posterPath={movie.poster_path} 
+              title={movie.title} 
+              mobileSize={true}
+            />
+          </div>
+          <div className='mobile-info'>
+            <div className='mobile-header'>
+              <div className='mobile-title'>{movie.title}</div>
+              <div 
+                className='mobile-rating'
+                style={{ borderColor: ratingColor }}
+              >
+                {movie.vote_average ? movie.vote_average.toFixed(1) : "0.0"}
+              </div>
+            </div>
+            <div className='mobile-release_date'>{movie.release_date}</div>
+            <div className='mobile-genres'>
+              {genreNames.map((name, index) => (
+                <div key={index} className='mobile-genre'>{name}</div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className='mobile-description'>
+          {truncateText(movie.overview || 'No description', 150)}
+        </div>
+        <div className='mobile-rate'>
+          <Rate 
+            count={10}
+            allowHalf
+            value={movie.userRating || 0}
+            onChange={(value) => addRatedMovie(movie, value)} 
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const renderDesktopCard = (movie) => (
+    <div className='movie-card' key={movie.id}>
+      <MoviePoster posterPath={movie.poster_path} title={movie.title} />
+      <Description
+        movie={movie}
+        movieTitle={movie.title}
+        movieRealiaseDate={movie.release_date}
+        movieOverview={truncateText(movie.overview, 150)}
+        voteAverage={movie.vote_average ? movie.vote_average.toFixed(1) : "0.0"}
+        genreIds={movie.genre_ids}
+      />
+    </div>
+  );
 
   const renderMovieCards = () => {
-    return filteredMovies.map((movie) => (
-      <div className='movie-card' key={movie.id}>
-        <MoviePoster
-          posterPath={movie.poster_path}
-          title={movie.title}
-        />
-        <Description
-          movie={movie}
-          movieTitle={movie.title}
-          movieRealiaseDate={movie.release_date}
-          movieOverview={truncateText(movie.overview, 150)}
-          voteAverage={movie.vote_average ? movie.vote_average.toFixed(1) : "0.0"}
-          genreIds={movie.genre_ids}
+    return filteredMovies.map(movie => 
+      windowWidth <= 500 ? renderMobileCard(movie) : renderDesktopCard(movie)
+    );
+  };
+
+  if (!isOnline && !filteredMovies.length) {
+    return (
+      <div className='movie-container'>
+        <Tabs />
+        <Errors 
+          errorMessage="You are offline. Please check your internet connection." 
+          onRetry={() => window.location.reload()} 
         />
       </div>
-    ));
-  };
+    );
+  }
 
   if (isLoading && !filteredMovies.length) {
     return (
@@ -160,7 +276,7 @@ function Movie() {
         currentPage={currentPage}
         totalPages={totalPages}
         onChange={handlePageChange}
-        disabled={isLoading}
+        disabled={isLoading || !isOnline}
       />
     </div>
   );

@@ -4,7 +4,7 @@ import Loading from '../loading/loading';
 import fallbackImage from '../assets/fallbackImage.jpg'; 
 import './moviePoster.css';
 
-const MoviePoster = ({ posterPath, title }) => {
+const MoviePoster = ({ posterPath, title , mobileSize}) => {
   const [isImageLoaded, setIsImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
 
@@ -24,14 +24,14 @@ const MoviePoster = ({ posterPath, title }) => {
         <img
           src={fallbackImage}
           alt='Img'
-          className='movieImg'
+          className={`movieImg ${mobileSize ? 'mobile-poster' : ''}`}
           onLoad={() => setIsImageLoaded(true)}
         />
       ) : (
         <img
           src={imageUrl}
           alt={title}
-          className='movieImg'
+          className={`movieImg ${mobileSize ? 'mobile-poster' : ''}`}
           onLoad={() => setIsImageLoaded(true)}
           onError={() => {
             setImageError(true);
