@@ -1,0 +1,111 @@
+.description {
+    padding-left: 20px;
+    padding-top: 10px;
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.genre-card {
+    padding: 2px 4px 3px 5px;
+    margin-right: 8px;
+    border: 1px solid #d9d9d9;
+    border-radius: 2px;
+    background-color: #fafafa;
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 100%;
+    letter-spacing: 0px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100px;
+}
+
+.description-genre {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 5px;
+    padding-bottom: 10px;
+    padding-top: 7px;
+    font-family: Inter;
+    font-size: 12px;
+    color: #000000a6;
+}
+
+.description-realise {
+    padding-top: 7px;
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 22px;
+    letter-spacing: 0px;
+    vertical-align: middle;
+    color: rgba(130, 126, 126, 1);
+}
+
+.description-title {
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 1.1em;
+    line-height: 28px;
+    letter-spacing: 0%;
+    vertical-align: middle;
+    color: #000000;
+    max-width: 205px;
+    max-height: 3em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.description-text {
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 12px;
+    color: #000000;
+    margin-right: 20px;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    overflow: hidden;
+    letter-spacing: 0px;
+    line-height: 22px;
+    max-height: 8em;
+    width: 228px;
+    text-overflow: ellipsis;
+}
+
+.description-current_rating {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid;
+    font-family: Inter;
+    font-weight: 400;
+    font-size: 12px;
+    color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.description-rate {
+    position: absolute;
+    bottom: 10px;
+    width: 239px;
+    height: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+:where(.css-dev-only-do-not-override-5uvb3z).ant-rate {
+    font-size: 16px;
+}
+:where(.css-5uvb3z).ant-rate {
+    font-size: 16px;
+}

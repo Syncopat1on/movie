@@ -1,0 +1,15 @@
+.poster-container {
+    position: relative;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+}
+
+.mobile-poster {
+    width: 60px;
+    height: 91px;
+    object-fit: cover;
+}
